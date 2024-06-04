@@ -6,7 +6,7 @@
 SetFactory("OpenCASCADE");
 
 // Allows gmsh to print to terminal in vscode - easier debugging
-General.Terminal = 1;
+General.Terminal = 0;
 
 // View options - not required when
 Geometry.PointLabels = 1;
@@ -14,31 +14,36 @@ Geometry.CurveLabels = 1;
 Geometry.SurfaceLabels = 0;
 Geometry.VolumeLabels = 0;
 
-//------------------------------------------------------------------------------
-// Variables
-file_name = "case09.msh";
+
+//-------------------------------------------------------------------------
+//_* MOOSEHERDER VARIABLES - START
+file_name = "stc-nopipe.msh";
 
 // Geometric variables
-block_width = 25e-3;
+block_width = 0.025;
 block_height = block_width+8e-3; // Must be greater than plate width
-block_depth= 50e-3;
+block_depth = 0.05;
 block_diff = block_height-block_width;
 
-hole_rad = 6e-3;
-hole_loc_x = 0.0;
+hole_rad = 0.006;
+hole_loc_x = 0;
 hole_loc_y = block_width/2;
 hole_circ = 2*Pi*hole_rad;
 
 // Mesh variables
 mesh_ref = 1;
-hole_sect_nodes = 5*mesh_ref; // Must be odd
-block_rad_nodes = 5*mesh_ref;
-block_diff_nodes = 5*mesh_ref; // numbers of nodes along the rectangular extension
-block_halfdepth_divs = 2*mesh_ref;
+
+hole_sect_nodes = 2*mesh_ref+1; // Must be odd
+block_rad_nodes = 2*mesh_ref+1;
+block_diff_nodes = 2*mesh_ref+1; // numbers of nodes along the rectangular extension
+block_halfdepth_divs = 3*mesh_ref;
 
 block_edge_nodes = Floor((hole_sect_nodes-1)/2)+1;
 elem_size = hole_circ/(4*(hole_sect_nodes-1));
 tol = elem_size/4; // Used for bounding box selection tolerance
+//** MOOSEHERDER VARIABLES - END
+//-------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------------
 // Geometry Definition

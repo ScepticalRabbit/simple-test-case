@@ -1,42 +1,33 @@
 '''
 ================================================================================
-pyvale: the python computer aided validation engine
-
 License: MIT
 Copyright (C) 2024 The Computer Aided Validation Team
 ================================================================================
 '''
 import time
+import shutil
 from pathlib import Path
 from mooseherder import (MooseConfig,
                          MooseRunner,
                          GmshRunner)
 
-#======================================
-# Change this to run a different case
-CASE_STR = 'case17'
-#======================================
 
-CASE_FILES = (CASE_STR+'.geo',CASE_STR+'.i')
-CASE_DIR = Path('simcases/'+CASE_STR+'/')
-
+GMSH_FILE = Path('models/meshes/stc-nopipe.geo')
+MOOSE_FILE = Path('models/thermal/stc-thermal.i')
 USER_DIR = Path.home()
 
-FORCE_GMSH = False
 
 def main() -> None:
-    # NOTE: if the msh file exists then gmsh will not run
-    if (((CASE_DIR / CASE_FILES[0]).is_file() and not
-        (CASE_DIR / CASE_FILES[0]).with_suffix('.msh').is_file()) or
-        FORCE_GMSH):
-        gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
 
-        gmsh_start = time.perf_counter()
-        gmsh_runner.run(CASE_DIR / CASE_FILES[0])
-        gmsh_run_time = time.perf_counter()-gmsh_start
-    else:
-        print('Bypassing gmsh.')
-        gmsh_run_time = 0.0
+    gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
+
+    gmsh_start = time.perf_counter()
+    gmsh_runner.run(GMSH_FILE)
+    gmsh_run_time = time.perf_counter()-gmsh_start
+
+    shutil.copyfile(GMSH_FILE.parent / 'stc-nopipe.msh',
+                    MOOSE_FILE.parent / 'stc-nopipe.msh')
+
 
     config = {'main_path': USER_DIR / 'moose',
             'app_path': USER_DIR / 'moose-workdir/proteus',
@@ -50,7 +41,7 @@ def main() -> None:
                               redirect_out = False)
 
     moose_start_time = time.perf_counter()
-    moose_runner.run(CASE_DIR / CASE_FILES[1])
+    moose_runner.run(MOOSE_FILE)
     moose_run_time = time.perf_counter() - moose_start_time
 
     print()

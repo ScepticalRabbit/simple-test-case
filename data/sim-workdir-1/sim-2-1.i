@@ -10,22 +10,25 @@
 #timeStep = 1
 
 # Thermal Loads/BCs
-coolantTemp = 100.0      # degC
-heatTransCoeff = 125.0e3 # W.m^-2.K^-1
-surfHeatFlux = 5.0e6    # W.m^-2
+coolantTemp = 100 # degC
+heatTransCoeff = 125000 # W.m^-2.K^-1
+surfHeatFlux = 5000000 # W.m^-2
 
 # Material Properties: Pure (OFHC) Copper at 250degC
-cuDensity = 8829.0  # kg.m^-3
-cuThermCond = 384.0 # W.m^-1.K^-1
-cuSpecHeat = 406.0  # J.kg^-1.K^-1
+cuDensity = 8829 # kg.m^-3
+cuThermCond = 384 # W.m^-1.K^-1
+cuSpecHeat = 406 # J.kg^-1.K^-1
+
+# Mesh file string
+mesh_file = 'stc-nopipe.msh'
 
 #** MOOSEHERDER VARIABLES - END
 #-------------------------------------------------------------------------
 
 [Mesh]
     type = FileMesh
-    file = 'case09.msh'
-[]
+    file = ${mesh_file}
+  []
 
 [Variables]
     [temperature]
