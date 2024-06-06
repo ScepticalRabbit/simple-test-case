@@ -5,15 +5,11 @@ Copyright (C) 2024 The Computer Aided Validation Team
 ================================================================================
 '''
 import time
-import shutil
 from pathlib import Path
-from mooseherder import (MooseConfig,
-                         MooseRunner,
-                         GmshRunner)
+from mooseherder import GmshRunner
 
 
-GMSH_FILE = Path('models/meshes/stc-nopipe.geo')
-MOOSE_FILE = Path('models/thermal/stc-thermal.i')
+GMSH_FILE = Path('models/meshes/stc.geo')
 USER_DIR = Path.home()
 
 
