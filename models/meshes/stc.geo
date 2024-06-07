@@ -14,7 +14,6 @@ Geometry.CurveLabels = 1;
 Geometry.SurfaceLabels = 0;
 Geometry.VolumeLabels = 0;
 
-
 //-------------------------------------------------------------------------
 //_* MOOSEHERDER VARIABLES - START
 file_name = "stc.msh";
@@ -29,15 +28,15 @@ block_height_tot = block_height_square+block_height_above_pipe;
 
 // Block half width must be greater than the sum of:
 // block_width/2 >= pipe_rad_in+pipe_thick_fillet_rad
-fillet_rad = 2e-3;
+fillet_rad = 3e-3;
 pipe_rad_in = 6e-3;
 pipe_thick = 1.5e-3;
 pipe_leng = 100e-3;
 
 // Must be an integer
-mesh_ref = 3;
+mesh_size = 2e-3;
 num_threads = 4;
-
+mesh_ref = 3;
 //** MOOSEHERDER VARIABLES - END
 //------------------------------------------------------------------------------
 
@@ -68,16 +67,35 @@ Box(v2) = {-block_width/2,0.0,-block_leng/2,
             block_width,block_height_tot,block_leng/2};
 
 v3 = newv;
-Cylinder(v3) = {pipe_loc_x,pipe_loc_y,0.0,
-                0.0,0.0,pipe_leng/2,pipe_rad_out,2*Pi};
+Cylinder(v3) = {pipe_loc_x,pipe_loc_y,block_leng/2,
+                0.0,0.0,(pipe_leng/2-block_leng/2),pipe_rad_out,2*Pi};
 v4 = newv;
-Cylinder(v4) = {pipe_loc_x,pipe_loc_y,0.0,
-                0.0,0.0,-pipe_leng/2,pipe_rad_out,2*Pi};
+Cylinder(v4) = {pipe_loc_x,pipe_loc_y,-block_leng/2,
+                0.0,0.0,-(pipe_leng/2-block_leng/2),pipe_rad_out,2*Pi};
 
-BooleanFragments{ Volume{v1}; Delete; }{ Volume{v2,v3,v4}; Delete; }
+BooleanUnion{ Volume{v1}; Delete; }{ Volume{v3}; Delete; }
+
+all_volumes = Volume{:};
 
 
+/*
+v5 = newv;
+Cylinder(v5) = {pipe_loc_x,pipe_loc_y,0.0,
+                0.0,0.0,pipe_leng/2,pipe_rad_in,2*Pi};
+v6 = newv;
+Cylinder(v6) = {pipe_loc_x,pipe_loc_y,0.0,
+                0.0,0.0,-pipe_leng/2,pipe_rad_in,2*Pi};
 
+BooleanDifference{Volume{all_volumes()}; Delete;}
+                 {Volume{v5,v6}; Delete;}
+*/
+
+Fillet{29}{40}{fillet_rad}
+//Fillet{6,3}{25}{fillet_rad}
+
+//------------------------------------------------------------------------------
+// Mesh Sizing
+MeshSize{ PointsOf{ Volume{:}; } } = mesh_size;
 
 //------------------------------------------------------------------------------
 // Global meshing
@@ -90,7 +108,7 @@ Mesh.MaxNumThreads2D = num_threads;
 Mesh.MaxNumThreads3D = num_threads;
 
 Mesh.ElementOrder = 2;
-//Mesh 3;
+Mesh 3;
 
 //------------------------------------------------------------------------------
 // Save and exit
