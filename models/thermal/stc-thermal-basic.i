@@ -6,13 +6,16 @@
 #_* MOOSEHERDER VARIABLES - START
 
 # NOTE: only used for transient solves
-#endTime= 1
-#timeStep = 1
+endTime= 1
+timeStep = 1
 
 # Thermal Loads/BCs
 coolantTemp = 100.0      # degC
 heatTransCoeff = 125.0e3 # W.m^-2.K^-1
-surfHeatFlux = 5.0e6    # W.m^-2
+
+surfHeatPower = 10e3     # W
+surfArea = ${fparse 50e-3*25e-3}   # m^2
+surfHeatFlux = ${fparse surfHeatPower/surfArea} # W.m^-2
 
 # Material Properties: Pure (OFHC) Copper at 250degC
 cuDensity = 8829.0  # kg.m^-3
@@ -20,7 +23,7 @@ cuThermCond = 384.0 # W.m^-1.K^-1
 cuSpecHeat = 406.0  # J.kg^-1.K^-1
 
 # Mesh file string
-mesh_file = 'stc-nopipe.msh'
+mesh_file = 'stc-full.msh'
 
 #** MOOSEHERDER VARIABLES - END
 #-------------------------------------------------------------------------
@@ -28,7 +31,7 @@ mesh_file = 'stc-nopipe.msh'
 [Mesh]
     type = FileMesh
     file = ${mesh_file}
-  []
+[]
 
 [Variables]
     [temperature]
@@ -73,17 +76,17 @@ mesh_file = 'stc-nopipe.msh'
 []
 
 [Executioner]
-    type = Steady
-    #end_time= ${endTime}
-    #dt = ${timeStep}
+    type = Transient
+    end_time= ${endTime}
+    dt = ${timeStep}
 []
 
 [Postprocessors]
-    [max_temp]
+    [temp_max]
         type = NodalExtremeValue
         variable = temperature
     []
-    [avg_temp]
+    [temp_avg]
         type = AverageNodalVariableValue
         variable = temperature
     []

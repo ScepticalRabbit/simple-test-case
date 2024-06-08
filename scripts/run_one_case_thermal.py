@@ -11,9 +11,9 @@ from mooseherder import (MooseConfig,
                          MooseRunner,
                          GmshRunner)
 
-
-GMSH_FILE = Path('models/meshes/stc-nopipe.geo')
-MOOSE_FILE = Path('models/thermal/stc-thermal.i')
+GMSH_TAG = 'stc-full'
+GMSH_FILE = Path('models/meshes/'+GMSH_TAG+'.geo')
+MOOSE_FILE = Path('models/thermal/stc-thermal-cu.i')
 USER_DIR = Path.home()
 
 
@@ -25,9 +25,8 @@ def main() -> None:
     gmsh_runner.run(GMSH_FILE)
     gmsh_run_time = time.perf_counter()-gmsh_start
 
-    shutil.copyfile(GMSH_FILE.parent / 'stc-nopipe.msh',
-                    MOOSE_FILE.parent / 'stc-nopipe.msh')
-
+    shutil.copyfile(GMSH_FILE.parent / str(GMSH_TAG+'.msh'),
+                    MOOSE_FILE.parent / str(GMSH_TAG+'.msh'))
 
     config = {'main_path': USER_DIR / 'moose',
             'app_path': USER_DIR / 'moose-workdir/proteus',
@@ -37,7 +36,7 @@ def main() -> None:
     moose_runner = MooseRunner(moose_config)
 
     moose_runner.set_run_opts(n_tasks = 1,
-                              n_threads = 8,
+                              n_threads = 7,
                               redirect_out = False)
 
     moose_start_time = time.perf_counter()

@@ -4,9 +4,8 @@
 
 #-------------------------------------------------------------------------
 #_* MOOSEHERDER VARIABLES - START
-
-#endTime= 1
-#timeStep = 1
+endTime= 1
+timeStep = 1
 
 # Thermal Loads/BCs
 coolantTemp = 100.0      # degC
@@ -37,7 +36,7 @@ cuThermExp = 17.8e-6 # 1/degC
 
 [Mesh]
     type = FileMesh
-    file = 'case10.msh'
+    file = 'stc-full.msh'
 []
 
 [Variables]
@@ -57,7 +56,7 @@ cuThermExp = 17.8e-6 # 1/degC
 
 [Modules/TensorMechanics/Master]
     [all]
-        strain = SMALL                      # SMALL or FINITE
+        strain = FINITE                      # SMALL or FINITE
         incremental = true
         add_variables = true
         material_output_family = MONOMIAL   # MONOMIAL, LAGRANGE
@@ -111,11 +110,10 @@ cuThermExp = 17.8e-6 # 1/degC
         value = ${surfHeatFlux}
     []
 
-    # Lock disp_y for base
-    # NOTE: if locking y on base need to comment all disp_y conditions below
+    # Lock disp_y for whole base
     [mech_bc_c_dispy]
         type = DirichletBC
-       variable = disp_y
+        variable = disp_y
         boundary = 'bc-base-disp'
         value = 0.0
     []
@@ -124,73 +122,43 @@ cuThermExp = 17.8e-6 # 1/degC
     [mech_bc_c_dispx]
         type = DirichletBC
         variable = disp_x
-        boundary = 'bc-c-point-xyz-mech'
+        boundary = 'bc-base-c-loc-xyz'
         value = 0.0
     []
-    #[mech_bc_c_dispy]
-    #    type = DirichletBC
-    #    variable = disp_y
-    #    boundary = 'bc-c-point-xyz-mech'
-    #    value = 0.0
-    #[]
     [mech_bc_c_dispz]
         type = DirichletBC
         variable = disp_z
-        boundary = 'bc-c-point-xyz-mech'
+        boundary = 'bc-base-c-loc-xyz'
         value = 0.0
     []
 
-    # Lock disp yz along the x (left-right) axis
-    #[mech_bc_l_dispy]
-    #    type = DirichletBC
-    #    variable = disp_y
-    #    boundary = 'bc-l-point-yz-mech'
-    #    value = 0.0
-    #[]
-    [mech_bc_l_dispz]
+    # Lock z dof along x axis
+    [mech_bc_px_dispz]
         type = DirichletBC
         variable = disp_z
-        boundary = 'bc-l-point-yz-mech'
+        boundary = 'bc-base-px-loc-z'
         value = 0.0
     []
-    #[mech_bc_r_dispy]
-    #    type = DirichletBC
-    #    variable = disp_y
-    #    boundary = 'bc-r-point-yz-mech'
-    #    value = 0.0
-    #[]
-    [mech_bc_r_dispz]
+    [mech_bc_nx_dispz]
         type = DirichletBC
         variable = disp_z
-        boundary = 'bc-r-point-yz-mech'
+        boundary = 'bc-base-nx-loc-z'
         value = 0.0
     []
 
-    # Lock disp xy along the z (front-back) axis
-    [mech_bc_f_dispx]
+    # Lock x dof along z
+    [mech_bc_pz_dispx]
         type = DirichletBC
         variable = disp_x
-        boundary = 'bc-f-point-xy-mech'
+        boundary = 'bc-base-pz-loc-x'
         value = 0.0
     []
-    #[mech_bc_f_dispy]
-    #    type = DirichletBC
-    #    variable = disp_y
-    #    boundary = 'bc-f-point-xy-mech'
-    #    value = 0.0
-    #[]
-    [mech_bc_b_dispx]
+    [mech_bc_nz_dispx]
         type = DirichletBC
         variable = disp_x
-        boundary = 'bc-b-point-xy-mech'
+        boundary = 'bc-base-nz-loc-x'
         value = 0.0
     []
-    #[mech_bc_b_dispy]
-    #    type = DirichletBC
-    #    variable = disp_y
-    #    boundary = 'bc-b-point-xy-mech'
-    #    value = 0.0
-    #[]
 []
 
 [Preconditioning]
@@ -200,13 +168,15 @@ cuThermExp = 17.8e-6 # 1/degC
     []
 []
 
+# NEWTON, pctype=lu,  solve time with 8 mpi tasks = 222s
 [Executioner]
-    type = Steady
-    solve_type = 'PJFNK'
-    petsc_options_iname = '-pc_type -pc_hypre_type'
-    petsc_options_value = 'hypre    boomeramg'
-    #end_time= ${endTime}
-    #dt = ${timeStep}
+    type = Transient
+    solve_type = 'NEWTON' # NEWTON or PJNFK
+    petsc_options_iname = '-pc_type'
+    petsc_options_value = 'lu'
+
+    end_time= ${endTime}
+    dt = ${timeStep}
 []
 
 [Postprocessors]
@@ -244,15 +214,6 @@ cuThermExp = 17.8e-6 # 1/degC
         type = ElementExtremeValue
         variable = strain_zz
     []
-
-    #[strain_xx_avg]
-    #    type = ElementAverageValue
-    #    variable = strain_xx
-    #[]
-    #[strain_yy_avg]
-    #    type = ElementAverageValue
-    #    variable = strain_yy
-    #[]
 []
 
 [Outputs]

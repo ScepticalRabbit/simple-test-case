@@ -9,7 +9,7 @@ from pathlib import Path
 from mooseherder import GmshRunner
 
 
-GMSH_FILE = Path('models/meshes/stc.geo')
+GMSH_FILE = Path('models/meshes/stc-full.geo')
 USER_DIR = Path.home()
 
 

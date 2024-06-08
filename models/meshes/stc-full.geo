@@ -16,7 +16,7 @@ Geometry.VolumeLabels = 0;
 
 //-------------------------------------------------------------------------
 //_* MOOSEHERDER VARIABLES - START
-file_name = "stc.msh";
+file_name = "stc-full.msh";
 
 // Geometric variables
 block_width = 25e-3;
@@ -243,9 +243,9 @@ Mesh.MaxNumThreads2D = num_threads;
 Mesh.MaxNumThreads3D = num_threads;
 
 Mesh.ElementOrder = 2;
-//Mesh 3;
+Mesh 3;
 
 //------------------------------------------------------------------------------
 // Save and exit
-//Save Str(file_name);
-//Exit;
+Save Str(file_name);
+Exit;
