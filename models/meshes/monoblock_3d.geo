@@ -57,7 +57,6 @@ tol = elem_size/4; // Used for selection tolerance of bounding boxes
 //------------------------------------------------------------------------------
 // Geometry Definition
 
-
 s1 = news;
 Rectangle(s1) =
     {-monoblock_width/2,0.0,0.0,
