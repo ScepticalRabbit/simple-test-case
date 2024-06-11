@@ -35,7 +35,7 @@ def main() -> None:
     moose_config = MooseConfig(config)
     moose_runner = MooseRunner(moose_config)
 
-    moose_runner.set_run_opts(n_tasks = 8,
+    moose_runner.set_run_opts(n_tasks = 7,
                               n_threads = 1,
                               redirect_out = False)
 

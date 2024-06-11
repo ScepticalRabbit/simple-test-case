@@ -4,8 +4,8 @@
 
 #-------------------------------------------------------------------------
 #_* MOOSEHERDER VARIABLES - START
-endTime= 1
-timeStep = 1
+#endTime= 1
+#timeStep = 1
 
 # Thermal Loads/BCs
 coolantTemp = 100.0      # degC
@@ -56,7 +56,7 @@ cuThermExp = 17.8e-6 # 1/degC
 
 [Modules/TensorMechanics/Master]
     [all]
-        strain = FINITE                      # SMALL or FINITE
+        strain = SMALL                      # SMALL or FINITE
         incremental = true
         add_variables = true
         material_output_family = MONOMIAL   # MONOMIAL, LAGRANGE
@@ -161,22 +161,29 @@ cuThermExp = 17.8e-6 # 1/degC
     []
 []
 
-[Preconditioning]
-    [smp]
-        type = SMP
-        full = true
-    []
-[]
+#[Preconditioning]
+#    [smp]
+#        type = SMP
+#        full = true
+#    []
+#[]
 
-# NEWTON, pctype=lu,  solve time with 8 mpi tasks = 222s
+# Trans, Precon=ON, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 229.18s
+# Trans, Precon=OFF, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 226.52s
+# Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 226.52s
 [Executioner]
-    type = Transient
+    type = Steady
+
     solve_type = 'NEWTON' # NEWTON or PJNFK
     petsc_options_iname = '-pc_type'
     petsc_options_value = 'lu'
 
-    end_time= ${endTime}
-    dt = ${timeStep}
+    #solve_type = 'PJFNK'
+    #petsc_options_iname = '-pc_type -pc_hypre_type'
+    #petsc_options_value = 'hypre boomeramg'
+
+    #end_time= ${endTime}
+    #dt = ${timeStep}
 []
 
 [Postprocessors]
