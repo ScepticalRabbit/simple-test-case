@@ -134,13 +134,7 @@ cuThermExp = 17.8e-6 # 1/degC
 
     # Lock z dof along x axis
     [mech_bc_px_dispz]
-        type = DirichletBC
-        variable = disp_z
-        boundary = 'bc-base-px-loc-z'
-        value = 0.0
-    []
-    [mech_bc_nx_dispz]
-        type = DirichletBC
+        type = DirichletBCk
         variable = disp_z
         boundary = 'bc-base-nx-loc-z'
         value = 0.0
@@ -177,6 +171,12 @@ cuThermExp = 17.8e-6 # 1/degC
     solve_type = 'NEWTON' # NEWTON or PJNFK
     petsc_options_iname = '-pc_type'
     petsc_options_value = 'lu'
+
+    l_max_its = 100
+    nl_max_its = 100
+    nl_rel_tol = 1e-9
+    nl_abs_tol = 1e-9
+    l_tol = 1e-9
 
     #solve_type = 'PJFNK'
     #petsc_options_iname = '-pc_type -pc_hypre_type'
