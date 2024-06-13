@@ -134,7 +134,7 @@ cuThermExp = 17.8e-6 # 1/degC
 
     # Lock z dof along x axis
     [mech_bc_px_dispz]
-        type = DirichletBCk
+        type = DirichletBC
         variable = disp_z
         boundary = 'bc-base-nx-loc-z'
         value = 0.0
@@ -162,9 +162,16 @@ cuThermExp = 17.8e-6 # 1/degC
 #    []
 #[]
 
+# LF-PersonalLaptop AMD 8 core / 8 thread
 # Trans, Precon=ON, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 229.18s
 # Trans, Precon=OFF, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 226.52s
 # Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 226.52s
+
+
+# LF-WorkLaptop AMD 8 core/ 16 threads
+# Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 8 mpi tasks = 275s
+# Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 4 mpi tasks = Xs
+
 [Executioner]
     type = Steady
 
