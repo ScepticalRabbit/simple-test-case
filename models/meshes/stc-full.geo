@@ -34,8 +34,9 @@ pipe_thick = 1.5e-3;
 pipe_leng = 100e-3;
 
 // Must be an integer
+elem_order = 2;
 mesh_ref = 1;
-mesh_size = 2e-3/mesh_ref;
+mesh_size = 3e-3/mesh_ref;
 num_threads = 4;
 //** MOOSEHERDER VARIABLES - END
 //------------------------------------------------------------------------------
@@ -242,7 +243,7 @@ Mesh.MaxNumThreads1D = num_threads;
 Mesh.MaxNumThreads2D = num_threads;
 Mesh.MaxNumThreads3D = num_threads;
 
-Mesh.ElementOrder = 2;
+Mesh.ElementOrder = elem_order;
 Mesh 3;
 
 //------------------------------------------------------------------------------

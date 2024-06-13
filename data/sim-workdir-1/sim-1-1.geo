@@ -10,197 +10,240 @@ General.Terminal = 0;
 
 // View options - not required when
 Geometry.PointLabels = 1;
-Geometry.CurveLabels = 1;
-Geometry.SurfaceLabels = 0;
+Geometry.CurveLabels = 0;
+Geometry.SurfaceLabels = 1;
 Geometry.VolumeLabels = 0;
-
 
 //-------------------------------------------------------------------------
 //_* MOOSEHERDER VARIABLES - START
-file_name = "stc-nopipe.msh";
+file_name = "stc-full.msh";
 
 // Geometric variables
 block_width = 0.025;
-block_height = block_width+8e-3; // Must be greater than plate width
-block_depth = 0.05;
-block_diff = block_height-block_width;
+block_leng = 0.05;
+block_armour = 0.008;
+block_height_square = 0.0125;
+block_height_above_pipe = 12.5e-3+block_armour;
+block_height_tot = block_height_square+block_height_above_pipe;
 
-hole_rad = 0.006;
-hole_loc_x = 0;
-hole_loc_y = block_width/2;
-hole_circ = 2*Pi*hole_rad;
+// Block half width must be greater than the sum of:
+// block_width/2 >= pipe_rad_in+pipe_thick_fillet_rad
+fillet_rad = 0.003;
+pipe_rad_in = 0.006;
+pipe_thick = 0.0015;
+pipe_leng = 0.1;
 
-// Mesh variables
+// Must be an integer
+elem_order = 1;
 mesh_ref = 1;
-
-hole_sect_nodes = 2*mesh_ref+1; // Must be odd
-block_rad_nodes = 2*mesh_ref+1;
-block_diff_nodes = 2*mesh_ref+1; // numbers of nodes along the rectangular extension
-block_halfdepth_divs = 3*mesh_ref;
-
-block_edge_nodes = Floor((hole_sect_nodes-1)/2)+1;
-elem_size = hole_circ/(4*(hole_sect_nodes-1));
-tol = elem_size/4; // Used for bounding box selection tolerance
+mesh_size = 3e-3/mesh_ref;
+num_threads = 4;
 //** MOOSEHERDER VARIABLES - END
-//-------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Calculated / Fixed Variables
+pipe_loc_x = 0.0;
+pipe_loc_y = block_height_square;
+
+pipe_rad_out = pipe_rad_in + pipe_thick;
+pipe_circ_in = 2*Pi*pipe_rad_in;
+
+tol = mesh_size/4; // Used for bounding box selection tolerance
 
 //------------------------------------------------------------------------------
 // Geometry Definition
-// Split block into six pieces with a square around the hole to allow spider
-// web meshing around the hole
 
-// 4 squares around the hole center
-s1 = news;
-Rectangle(s1) = {-block_width/2,0.0,0.0,
-                block_width/2,block_width/2};
-s2 = news;
-Rectangle(s2) = {0.0,0.0,0.0,
-                block_width/2,block_width/2};
+// Create the block and the outer pipe diam as solid cylinders
+v1 = newv;
+Box(v1) = {-block_width/2,0,0,
+            block_width,block_height_tot,block_leng/2};
+v2 = newv;
+Box(v2) = {-block_width/2,0.0,-block_leng/2,
+            block_width,block_height_tot,block_leng/2};
 
-s3 = news;
-Rectangle(s3) = {-block_width/2,block_width/2,0.0,
-                block_width/2,block_width/2};
-s4 = news;
-Rectangle(s4) = {0.0,block_width/2,0.0,
-                block_width/2,block_width/2};
+v3 = newv;
+Cylinder(v3) = {pipe_loc_x,pipe_loc_y,block_leng/2,
+                0.0,0.0,(pipe_leng/2-block_leng/2),pipe_rad_out,2*Pi};
+v4 = newv;
+Cylinder(v4) = {pipe_loc_x,pipe_loc_y,-block_leng/2,
+                0.0,0.0,-(pipe_leng/2-block_leng/2),pipe_rad_out,2*Pi};
 
-// Two rectangles above the hole (armour)
-s5 = news;
-Rectangle(s5) = {-block_width/2,block_width,0.0,
-                block_width/2,block_diff};
-s6 = news;
-Rectangle(s6) = {0.0,block_width,0.0,
-                block_width/2,block_diff};
+// Need to join the cylinder to the block to create a fillet
+BooleanUnion{ Volume{v1}; Delete; }{ Volume{v3}; Delete; }
+BooleanUnion{ Volume{v2}; Delete; }{ Volume{v4}; Delete; }
 
-// Merge coincicent edges of the four overlapping squares
-BooleanFragments{ Surface{s1}; Delete; }
-                { Surface{s2,s3,s4,s5,s6}; Delete; }
+// Grab the curves between the pipe outer edge and the block to fillet
+cf1() = Curve In BoundingBox{
+    pipe_loc_x-pipe_rad_out-tol,pipe_loc_y-pipe_rad_out-tol,block_leng/2-tol,
+    pipe_loc_x+pipe_rad_out+tol,pipe_loc_y+pipe_rad_out+tol,block_leng/2+tol};
 
+cf2() = Curve In BoundingBox{
+    pipe_loc_x-pipe_rad_out-tol,pipe_loc_y-pipe_rad_out-tol,-block_leng/2-tol,
+    pipe_loc_x+pipe_rad_out+tol,pipe_loc_y+pipe_rad_out+tol,-block_leng/2+tol};
 
-// Create the hole surface
-c2 = newc; Circle(c2) = {hole_loc_x,hole_loc_y,0.0,hole_rad};
-cl2 = newcl; Curve Loop(cl2) = {c2};
-s9 = news; Plane Surface(s9) = {cl2};
-// Bore out the hole from the quarters of the plate
-BooleanDifference{ Surface{s1,s2,s3,s4}; Delete; }{ Surface{s9}; Delete; }
+all_vols = Volume{:};
+Fillet{all_vols(0)}{cf1(0)}{fillet_rad}
+Fillet{all_vols(1)}{cf2(0)}{fillet_rad}
 
-//------------------------------------------------------------------------------
-// Transfinite meshing (line element sizes and mapped meshing)
-// Line sizing
-Transfinite Curve{21,24,28,19} = block_rad_nodes;
-Transfinite Curve{22,26,25,31,12,9,27,18,14,17} = block_edge_nodes;
-Transfinite Curve{20,23,30,29} = hole_sect_nodes;
-Transfinite Curve{15,13,16} = block_diff_nodes;
+// Join the two halves of the block but maintain the dividing line
+all_vols = Volume{:};
+BooleanFragments{Volume{all_vols(0)}; Delete;}{Volume{all_vols(1)}; Delete;}
 
-// Spider web mesh around the 4 quadrants of the hole
-Transfinite Surface{s1} = {17,16,15,13};
-Recombine Surface{s1};
-Transfinite Surface{s2} = {17,16,18,19};
-Recombine Surface{s2};
-Transfinite Surface{s3} = {13,15,21,7};
-Recombine Surface{s3};
-Transfinite Surface{s4} = {21,18,19,7};
-Recombine Surface{s4};
+// Create the pipe bore
+all_vols = Volume{:};
+v5 = newv;
+Cylinder(v5) = {pipe_loc_x,pipe_loc_y,-pipe_leng/2,
+                0.0,0.0,pipe_leng,pipe_rad_in,2*Pi};
+BooleanDifference{Volume{all_vols(0),all_vols(1)}; Delete;}
+                {Volume{v5}; Delete;}
+all_vols = Volume{:};
 
-// Mesh the armour
-Transfinite Surface{s5} = {8,7,10,11};
-Recombine Surface{s5};
-Transfinite Surface{s6} = {7,9,10,12};
-Recombine Surface{s6};
+// Actual geometry complete - remainder are points for mech BCs
+// For mech BCs on the base of the block
+pb1 = newp; Point(pb1) = {0,0,0};
+pb2 = newp; Point(pb2) = {0,0,block_leng/2};
+pb3 = newp; Point(pb3) = {0,0,-block_leng/2};
+pb4 = newp; Point(pb4) = {-block_width/2,0,0};
+pb5 = newp; Point(pb5) = {block_width/2,0,0};
 
-//------------------------------------------------------------------------------
-// Extrude the surface mesh to 3D
-// Extrude only hlafway and then extrude again to allow BCs on the centre line
-Extrude{0.0,0.0,block_depth/2}{
-    Surface{:}; Layers{block_halfdepth_divs}; Recombine;
-}
+// For mech BCs on the pipe
+pm1 = newp; Point(pm1) = {pipe_loc_x+pipe_rad_out,pipe_loc_y+0.0,pipe_leng/2};
+pm2 = newp; Point(pm2) = {pipe_loc_x+0.0,pipe_loc_y+pipe_rad_out,pipe_leng/2};
+pm3 = newp; Point(pm3) = {pipe_loc_x-pipe_rad_out,pipe_loc_y+0.0,pipe_leng/2};
+pm4 = newp; Point(pm4) = {pipe_loc_x-0.0,pipe_loc_y-pipe_rad_out,pipe_leng/2};
 
-es1() = Surface In BoundingBox{
-    -block_width/2-tol,0.0-tol,block_depth/2-tol,
-    block_width/2+tol,block_height+tol,block_depth/2+tol};
+pm5 = newp; Point(pm5) = {pipe_loc_x+pipe_rad_out,pipe_loc_y+0.0,-pipe_leng/2};
+pm6 = newp; Point(pm6) = {pipe_loc_x+0.0,pipe_loc_y+pipe_rad_out,-pipe_leng/2};
+pm7 = newp; Point(pm7) = {pipe_loc_x-pipe_rad_out,pipe_loc_y+0.0,-pipe_leng/2};
+pm8 = newp; Point(pm8) = {pipe_loc_x-0.0,pipe_loc_y-pipe_rad_out,-pipe_leng/2};
 
-Extrude{0.0,0.0,block_depth/2}{
-    Surface{es1(0),es1(1),es1(2),es1(3),es1(4),es1(5)};
-    Layers{block_halfdepth_divs}; Recombine;
-}
+BooleanFragments{Volume{:}; Delete;}
+{Point{pb1,pb2,pb3,pb4,pb5,pm1,pm2,pm3,pm4,pm5,pm6,pm7,pm8}; Delete;}
 
 //------------------------------------------------------------------------------
 // Physical surfaces and volumes for export/BCs
+
 Physical Volume("stc-vol") = {Volume{:}};
 
 // Physical surface for mechanical BC for dispy - like sitting on a flat surface
 ps1() = Surface In BoundingBox{
-    -block_width/2-tol,0.0-tol,0.0-tol,
-    block_width/2+tol,0.0+tol,block_depth+tol};
-Physical Surface("bc-base-disp") = {ps1(0),ps1(1),ps1(2),ps1(3)};
+    -block_width/2-tol,0.0-tol,-block_leng/2-tol,
+    block_width/2+tol,0.0+tol,block_leng/2+tol};
+Physical Surface("bc-base-disp") = {ps1(0),ps1(1)};
 
 // thermal BCs for top surface heat flux and pipe htc
 ps2() = Surface In BoundingBox{
-    -block_width/2-tol,block_height-tol,0.0-tol,
-    block_width/2+tol,block_height+tol,block_depth+tol};
-Physical Surface("bc-top-heatflux") = {ps2(0),ps2(1),ps2(2),ps2(3)};
+    -block_width/2-tol,block_height_tot-tol,-block_leng/2-tol,
+    block_width/2+tol,block_height_tot+tol,block_leng/2+tol};
+Physical Surface("bc-top-heatflux") = {ps2(0),ps2(1)};
 
 ps3() = Surface In BoundingBox{
-    -hole_rad-tol,block_width/2-hole_rad-tol,0.0-tol,
-    hole_rad+tol,block_width/2+hole_rad+tol,block_depth+tol};
-Physical Surface("bc-pipe-htc") = {ps3(0),ps3(1),ps3(2),ps3(3),ps3(4),ps3(5),ps3(6),ps3(7)};
+    pipe_loc_x-pipe_rad_in-tol,pipe_loc_y-pipe_rad_in-tol,-pipe_leng/2-tol,
+    pipe_loc_x+pipe_rad_in+tol,pipe_loc_y+pipe_rad_in+tol,pipe_leng/2+tol};
+Physical Surface("bc-pipe-htc") = {ps3(0),ps3(1)};
 
-// These don't work in MOOSE because of how it handles 3D meshes from Gmsh
-// See: https://github.com/idaholab/moose/discussions/27607
-/*
-pc1() = Curve In BoundingBox{
-    -tol,-tol,-tol,
-    +tol,+tol,block_depth+tol};
-Physical Curve("bc-curve-xy-mech") = {pc1(0)};
-
-pc2() = Curve In BoundingBox{
-    -block_width/2-tol,-tol,-tol,
-    block_width/2+tol,+tol,+tol};
-Physical Curve("bc-curve-yz-mech") = {pc2(0),pc2(1)};
-*/
-
-// Physical points for applying mechanical BCs
+// Physical points for applying mechanical BCs - Lines don't work in 3D
 // Center of the base of the block - lock all DOFs
 pp0() = Point In BoundingBox{
-    -tol,-tol,block_depth/2-tol,
-    +tol,+tol,block_depth/2+tol};
-Physical Point("bc-c-point-xyz-mech") = {pp0(0)};
+    -tol,-tol,-tol,
+    +tol,+tol,+tol};
+Physical Point("bc-base-c-loc-xyz") = {pp0(0)};
 
-// Left and right on the base center line
+// Base points on the (p)ositive and (n)egative axes
 pp1() = Point In BoundingBox{
-    -block_width/2-tol,-tol,block_depth/2-tol,
-    -block_width/2+tol,+tol,block_depth/2+tol};
-Physical Point("bc-l-point-yz-mech") = {pp1(0)};
+    block_width/2-tol,-tol,-tol,
+    block_width/2+tol,+tol,+tol};
+Physical Point("bc-base-px-loc-z") = {pp1(0)};
 
 pp2() = Point In BoundingBox{
-    block_width/2-tol,-tol,block_depth/2-tol,
-    block_width/2+tol,+tol,block_depth/2+tol};
-Physical Point("bc-r-point-yz-mech") = {pp2(0)};
+    -block_width/2-tol,-tol,-tol,
+    -block_width/2+tol,+tol,+tol};
+Physical Point("bc-base-nx-loc-z") = {pp2(0)};
 
-// Front and back on the base center line
 pp3() = Point In BoundingBox{
-    -tol,-tol,block_depth-tol,
-    +tol,+tol,block_depth+tol};
-Physical Point("bc-f-point-xy-mech") = {pp3(0)};
+    -tol,-tol,block_leng/2-tol,
+    +tol,+tol,block_leng/2+tol};
+Physical Point("bc-base-pz-loc-x") = {pp3(0)};
 
 pp4() = Point In BoundingBox{
-    -tol,-tol,0.0-tol,
-    +tol,+tol,0.0+tol};
-Physical Point("bc-b-point-xy-mech") = {pp4(0)};
+    -tol,-tol,-block_leng/2-tol,
+    +tol,+tol,-block_leng/2+tol};
+Physical Point("bc-base-nz-loc-x") = {pp4(0)};
+
+// Pipe end in the (p)ositive z direction, (n)orth,(s)outh,(e)ast,(w)est
+loc_x = 0.0;
+loc_y = pipe_rad_out;
+pp5() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,pipe_leng/2+tol};
+Physical Point("bc-pipe-pzn-loc-x") = {pp5(0)};
+
+loc_x = 0.0;
+loc_y = -pipe_rad_out;
+pp6() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,pipe_leng/2+tol};
+Physical Point("bc-pipe-pzs-loc-x") = {pp6(0)};
+
+loc_x = pipe_rad_out;
+loc_y = 0.0;
+pp7() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,pipe_leng/2+tol};
+Physical Point("bc-pipe-pze-loc-y") = {pp7(0)};
+
+loc_x = -pipe_rad_out;
+loc_y = 0.0;
+pp8() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,pipe_leng/2+tol};
+Physical Point("bc-pipe-pzw-loc-y") = {pp8(0)};
+
+// Pipe end in the (n)egative z direction, (n)orth,(s)outh,(e)ast,(w)est
+loc_x = 0.0;
+loc_y = pipe_rad_out;
+pp9() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,-pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,-pipe_leng/2+tol};
+Physical Point("bc-pipe-nzn-loc-x") = {pp9(0)};
+
+loc_x = 0.0;
+loc_y = -pipe_rad_out;
+pp10() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,-pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,-pipe_leng/2+tol};
+Physical Point("bc-pipe-nzs-loc-x") = {pp10(0)};
+
+loc_x = pipe_rad_out;
+loc_y = 0.0;
+pp11() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,-pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,-pipe_leng/2+tol};
+Physical Point("bc-pipe-nze-loc-y") = {pp11(0)};
+
+loc_x = -pipe_rad_out;
+loc_y = 0.0;
+pp12() = Point In BoundingBox{
+    pipe_loc_x+loc_x-tol,pipe_loc_y+loc_y-tol,-pipe_leng/2-tol,
+    pipe_loc_x+loc_x+tol,pipe_loc_y+loc_y+tol,-pipe_leng/2+tol};
+Physical Point("bc-pipe-nzw-loc-y") = {pp12(0)};
+
+//------------------------------------------------------------------------------
+// Mesh Sizing
+MeshSize{ PointsOf{ Volume{:}; } } = mesh_size;
 
 //------------------------------------------------------------------------------
 // Global meshing
 Mesh.Algorithm = 6;
 Mesh.Algorithm3D = 10;
 
-num_threads = 4;
 General.NumThreads = num_threads;
 Mesh.MaxNumThreads1D = num_threads;
 Mesh.MaxNumThreads2D = num_threads;
 Mesh.MaxNumThreads3D = num_threads;
 
-Mesh.ElementOrder = 2;
+Mesh.ElementOrder = elem_order;
 Mesh 3;
 
 //------------------------------------------------------------------------------

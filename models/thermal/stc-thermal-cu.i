@@ -17,6 +17,7 @@ surfHeatFlux = ${fparse surfHeatPower/surfArea} # W.m^-2
 
 # Mesh file string
 mesh_file = 'stc-full.msh'
+elem_order = 'SECOND'
 
 #** MOOSEHERDER VARIABLES - END
 #-------------------------------------------------------------------------
@@ -28,6 +29,8 @@ mesh_file = 'stc-full.msh'
 
 [Variables]
     [temperature]
+        family = LAGRANGE
+        order = ${elem_order}
         initial_condition = ${coolantTemp}
     []
 []

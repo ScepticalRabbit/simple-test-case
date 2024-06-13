@@ -35,7 +35,7 @@ pipe_leng = 0.1;
 
 // Must be an integer
 elem_order = 2;
-mesh_ref = 1;
+mesh_ref = 5;
 mesh_size = 3e-3/mesh_ref;
 num_threads = 4;
 //** MOOSEHERDER VARIABLES - END

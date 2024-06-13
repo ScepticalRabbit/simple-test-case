@@ -19,9 +19,9 @@ def main():
     print('MESH REFINEMENT STUDY')
     print("="*80)
 
-    gmsh_input = Path('models/meshes/stc-nopipe.geo')
-    moose_input = Path('models/thermal/stc-thermal.i')
-    mesh_ref = (1,2,3,4)
+    gmsh_input = Path('models/meshes/stc-full.geo')
+    moose_input = Path('models/thermal/stc-thermal-cu.i')
+
 
     moose_modifier = InputModifier(moose_input,'#','')
     config = {'main_path': USER_DIR / 'moose',
@@ -29,9 +29,9 @@ def main():
             'app_name': 'proteus-opt'}
     moose_config = MooseConfig(config)
     moose_runner = MooseRunner(moose_config)
-    moose_runner.set_run_opts(n_tasks = 1,
-                              n_threads = 2,
-                              redirect_out = True)
+    moose_runner.set_run_opts(n_tasks = 8,
+                              n_threads = 1,
+                              redirect_out = False)
 
     gmsh_modifier = InputModifier(gmsh_input,'//',';')
     gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
@@ -43,17 +43,20 @@ def main():
     dir_manager = DirectoryManager(n_dirs = 1)
 
     herd = MooseHerd(sim_runners,input_modifiers,dir_manager)
-    herd.set_num_para_sims(n_para = 4)
+    herd.set_num_para_sims(n_para = 1)
 
     dir_manager.set_base_dir(Path('data/'))
     dir_manager.clear_dirs()
     dir_manager.create_dirs()
 
+    mesh_ref = (1,2,3,4,5,6)
+    order_num = (1,2)
+    order_str = ('FIRST','SECOND')
 
     var_sweep = list()
-
     for mm in mesh_ref:
-        var_sweep.append([{'mesh_ref':mm},None])
+        for (o1,o2) in zip(order_num,order_str):
+            var_sweep.append([{'mesh_ref':mm,'elem_order':o1},{'elem_order':o2}])
 
     print('Mesh sweep variables:')
     for vv in var_sweep:

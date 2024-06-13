@@ -26,6 +26,9 @@ cuPRatio = 0.33      # -
 stressFreeTemp = 20 # degC
 cuThermExp = 17.8e-6 # 1/degC
 
+# Element properties
+elem_order = 'SECOND'
+
 #** MOOSEHERDER VARIABLES - END
 #-------------------------------------------------------------------------
 

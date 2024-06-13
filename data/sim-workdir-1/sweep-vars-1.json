@@ -1,14 +1,110 @@
 [
     [
         {
-            "mesh_ref": 1
+            "mesh_ref": 1,
+            "elem_order": 1
         },
-        null
+        {
+            "elem_order": "FIRST"
+        }
     ],
     [
         {
-            "mesh_ref": 2
+            "mesh_ref": 1,
+            "elem_order": 2
         },
-        null
+        {
+            "elem_order": "SECOND"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 2,
+            "elem_order": 1
+        },
+        {
+            "elem_order": "FIRST"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 2,
+            "elem_order": 2
+        },
+        {
+            "elem_order": "SECOND"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 3,
+            "elem_order": 1
+        },
+        {
+            "elem_order": "FIRST"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 3,
+            "elem_order": 2
+        },
+        {
+            "elem_order": "SECOND"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 4,
+            "elem_order": 1
+        },
+        {
+            "elem_order": "FIRST"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 4,
+            "elem_order": 2
+        },
+        {
+            "elem_order": "SECOND"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 5,
+            "elem_order": 1
+        },
+        {
+            "elem_order": "FIRST"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 5,
+            "elem_order": 2
+        },
+        {
+            "elem_order": "SECOND"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 6,
+            "elem_order": 1
+        },
+        {
+            "elem_order": "FIRST"
+        }
+    ],
+    [
+        {
+            "mesh_ref": 6,
+            "elem_order": 2
+        },
+        {
+            "elem_order": "SECOND"
+        }
     ]
 ]
