@@ -167,10 +167,10 @@ cuThermExp = 17.8e-6 # 1/degC
 # Trans, Precon=OFF, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 226.52s
 # Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 7 mpi tasks = 226.52s
 
-
 # LF-WorkLaptop AMD 8 core/ 16 threads
 # Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 8 mpi tasks = 275s
-# Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 4 mpi tasks = Xs
+# Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 6 mpi tasks = ~350s
+# Steady, Precon=OFF, NEWTON, pctype=lu,  solve time with 4 mpi tasks = 458s
 
 [Executioner]
     type = Steady
