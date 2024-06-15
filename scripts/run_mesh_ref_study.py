@@ -37,7 +37,6 @@ def main():
     gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
     gmsh_runner.set_input_file(gmsh_input)
 
-
     sim_runners = [gmsh_runner,moose_runner]
     input_modifiers = [gmsh_modifier,moose_modifier]
     dir_manager = DirectoryManager(n_dirs = 1)
@@ -45,7 +44,7 @@ def main():
     herd = MooseHerd(sim_runners,input_modifiers,dir_manager)
     herd.set_num_para_sims(n_para = 1)
 
-    dir_manager.set_base_dir(Path('data/'))
+    dir_manager.set_base_dir(Path('data/mesh_ref_thermal/'))
     dir_manager.clear_dirs()
     dir_manager.create_dirs()
 
