@@ -45,7 +45,7 @@ elem_order = 'SECOND'
 [Variables]
     [temperature]
         family = LAGRANGE
-        order = FIRST
+        order = ${elem_order}
         initial_condition = ${coolantTemp}
     []
 []
