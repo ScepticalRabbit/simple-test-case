@@ -19,7 +19,7 @@ USER_DIR = Path.home()
 
 def main() -> None:
 
-    gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
+    gmsh_runner = GmshRunner(USER_DIR / 'gmsh/bin/gmsh')
 
     gmsh_start = time.perf_counter()
     gmsh_runner.run(GMSH_FILE)
@@ -29,7 +29,7 @@ def main() -> None:
                     MOOSE_FILE.parent / str(GMSH_TAG+'.msh'))
 
     config = {'main_path': USER_DIR / 'moose',
-            'app_path': USER_DIR / 'moose-workdir/proteus',
+            'app_path': USER_DIR / 'proteus',
             'app_name': 'proteus-opt'}
 
     moose_config = MooseConfig(config)

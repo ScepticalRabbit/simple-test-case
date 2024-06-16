@@ -25,7 +25,7 @@ def main():
 
     moose_modifier = InputModifier(moose_input,'#','')
     config = {'main_path': USER_DIR / 'moose',
-            'app_path': USER_DIR / 'moose-workdir/proteus',
+            'app_path': USER_DIR / 'proteus',
             'app_name': 'proteus-opt'}
     moose_config = MooseConfig(config)
     moose_runner = MooseRunner(moose_config)
@@ -34,7 +34,7 @@ def main():
                               redirect_out = False)
 
     gmsh_modifier = InputModifier(gmsh_input,'//',';')
-    gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
+    gmsh_runner = GmshRunner(USER_DIR / 'gmsh/bin/gmsh')
     gmsh_runner.set_input_file(gmsh_input)
 
     sim_runners = [gmsh_runner,moose_runner]

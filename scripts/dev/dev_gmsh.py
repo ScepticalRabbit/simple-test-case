@@ -15,7 +15,7 @@ USER_DIR = Path.home()
 
 def main() -> None:
 
-    gmsh_runner = GmshRunner(USER_DIR / 'moose-workdir/gmsh/bin/gmsh')
+    gmsh_runner = GmshRunner(USER_DIR / 'gmsh/bin/gmsh')
 
     gmsh_start = time.perf_counter()
     gmsh_runner.run(GMSH_FILE)
